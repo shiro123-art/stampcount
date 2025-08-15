@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>切手カウンター（複合額面・空白スタート）</title>
 
-<!-- PWA（使っているならこのまま） -->
 <link rel="manifest" href="manifest.webmanifest" />
 <meta name="theme-color" content="#105FCA" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -13,10 +12,10 @@
 <style>
   :root{
     --radius:12px;
-    /* 幅は必要なら数値だけ変えてOK */
-    --w-amount:30x;      /* 額面（小さめ） */
-    --w-count:140px;      /* 枚数／シート数（広め・同じ幅） */
-    --btn-size:20px;      /* ＋ボタン */
+    /* ←必要なら数字だけ変えてOK */
+    --w-amount:64px;     /* 額面（さらに小さめに固定） */
+    --w-count:140px;     /* 枚数／シート数（広め・同じ幅） */
+    --btn-size:34px;     /* ＋ボタン（押しやすい最小サイズ） */
   }
   *{ box-sizing:border-box; }
   body{
@@ -43,13 +42,12 @@
   }
   .chip:active{ background:#eee; }
 
-  /* テーブル */
   table{ width:100%; border-collapse:collapse; }
   th,td{ padding:8px; border-bottom:1px solid #eee; vertical-align:middle; }
   th{ text-align:left; font-weight:700; }
   .right{ text-align:right; font-variant-numeric:tabular-nums; }
 
-  /* 縦並び見出し */
+  /* 見出しの縦並び */
   .th-multi{ line-height:1.25; }
   .th-multi .br{ display:block; }
 
@@ -58,20 +56,25 @@
     width:100%; padding:10px 11px; border:1px solid #ccc; border-radius:var(--radius);
     font-size:17px; background:#fff;
   }
+
+  /* 額面＋ボタンを2列のGridにして常時表示に */
   .amount-wrap{
-    display:inline-flex; align-items:center; gap:6px; width:100%;
-    min-width: calc(var(--w-amount) + var(--btn-size) + 10px); /* ＋が隠れないよう確保 */
+    display:grid;
+    grid-template-columns: var(--w-amount) var(--btn-size);
+    align-items:center;
+    gap:6px;
+    width:max-content;   /* 中身ぶんだけ。はみ出しても縮まない */
   }
-  .amount{ width:var(--w-amount); flex:0 0 auto; }
-  .per   { width:var(--w-count);  flex:0 0 auto; }
-  .sheet { width:var(--w-count);  flex:0 0 auto; }
+  .amount{ width:var(--w-amount); }
+  .per   { width:var(--w-count);  }
+  .sheet { width:var(--w-count);  }
 
   .plus-btn{
     width:var(--btn-size); height:var(--btn-size);
-    flex:0 0 auto; /* ここで絶対縮ませない */
-    border-radius:12px; font-size:22px; line-height:1;
+    border-radius:12px; font-size:20px; line-height:1;
     display:inline-flex; align-items:center; justify-content:center;
     border:1px solid #ccc; background:#fff; cursor:pointer;
+    flex:0 0 auto;
   }
 
   .summary{ margin-top:14px; padding:12px; border:1px solid #eee; border-radius:var(--radius); background:#fafafa; }
@@ -229,7 +232,7 @@
     grand.textContent  = yen(total);
   }
 
-  /* ====== よく使う額面（編集可・端末共通） ====== */
+  /* ====== よく使う額面（編集可） ====== */
   function getPresets(){
     try{
       const s = localStorage.getItem(LS_PRESETS);
@@ -277,7 +280,6 @@
     recalc();
   })();
 
-  /* ====== PWA（置いてあるときだけ） ====== */
   if('serviceWorker' in navigator){
     navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
   }
