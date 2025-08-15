@@ -1,193 +1,302 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>切手カウンター（複合額面・空白スタート）</title>
-<style>
-:root { --radius: 10px; }
-* { box-sizing: border-box; }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>切手カウンター（複合額面・空白スタート）</title>
 
-body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-               "Hiragino Kaku Gothic ProN", "Noto Sans JP", Arial, sans-serif;
-  margin: 14px;
-}
+  <!-- PWA（既に manifest と SW を作っている想定） -->
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#105FCA" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
 
-h1 { font-size: 20px; margin: 0 0 8px; }
-.hint { color:#666; font-size: 13px; margin-bottom: 12px; }
+  <style>
+    :root { --radius: 12px; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, system-ui, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", "Noto Sans JP", Arial, sans-serif;
+      margin: 14px;
+    }
+    h1 { font-size: 20px; margin: 0 0 8px; }
+    .hint { color: #666; font-size: 12px; margin-bottom: 10px; }
 
-.toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
-.toolbar button {
-  padding: 8px 14px;
-  border-radius: var(--radius);
-  border: 1px solid #ccc;
-  background: #fff;
-  font-size: 14px;
-  cursor: pointer;
-}
-.toolbar button.primary {
-  background: #000; color: #fff; border: none;
-}
+    .toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 8px 0; }
+    button { padding: 10px 12px; border-radius: var(--radius); border: 1px solid #ccc; cursor: pointer; background: #fff; }
+    .primary { background: #111; color: #fff; border-color: #111; }
+    .sectionTitle { font-size: 13px; color: #666; margin: 8px 0; }
+    .summary { margin-top: 14px; padding: 12px; border: 1px solid #eee; border-radius: var(--radius); background: #fafafa; }
+    .summary h2 { font-size: 14px; margin: 0 0 8px; }
+    .totalbar { position: sticky; bottom: 0; background: rgba(255,255,255,0.96); backdrop-filter: blur(6px); padding: 8px 10px; border-top: 1px solid #eee; text-align: right; font-variant-numeric: tabular-nums; }
 
-.sectionTitle { margin: 12px 0 6px; font-weight: bold; }
-.chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
-.chips button {
-  padding: 6px 10px;
-  border: 1px solid #ccc;
-  border-radius: 16px;
-  background: #fff;
-  font-size: 14px;
-  cursor: pointer;
-}
+    /* よく使う額面 */
+    .chipswrap { display:flex; gap:8px; overflow-x:auto; padding: 4px 0; }
+    .chip { display:flex; gap:8px; align-items:center; padding:7px 10px; border:1px solid #ccc; background:#fff; border-radius:9999px; white-space:nowrap; user-select:none; }
+    .chip:active { background:#f0f0f0; }
 
-table { width: 100%; border-collapse: collapse; }
-th, td { text-align: center; padding: 4px; }
-td { vertical-align: middle; }
+    /* テーブル */
+    table { width:100%; border-collapse: collapse; }
+    th, td { padding: 8px; border-bottom: 1px solid #eee; vertical-align: middle; }
+    th { text-align:left; font-weight: 600; color: #333; }
+    .right { text-align:right; font-variant-numeric: tabular-nums; }
 
-.amount-wrap { display:inline-flex; align-items:center; gap:4px; }
-.amount-wrap .amount { width: 80px; flex: 0 0 auto; }
+    /* ===== 入力サイズを統一 ===== */
+    .input-row { display:flex; align-items:center; gap:10px; }
+    .amount-wrap { display:flex; align-items:center; gap:8px; }
 
-.plus-btn {
-  width: 34px; height: 34px;
-  border-radius: 8px;
-  font-size: 18px;
-  display:inline-flex; align-items:center; justify-content:center;
-  border:1px solid #ccc; background:#fff; cursor:pointer;
-}
+    .input--box {
+      height: 44px;
+      min-width: 128px;
+      padding: 0 12px;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      font-size: 18px;
+      width: 100%;
+    }
 
-input[type="number"], input[type="text"] {
-  padding: 6px 8px;
-  font-size: 15px;
-  border-radius: var(--radius);
-  border: 1px solid #ccc;
-  text-align: center;
-}
+    input[type="number"].input--box::-webkit-outer-spin-button,
+    input[type="number"].input--box::-webkit-inner-spin-button {
+      -webkit-appearance: none; margin: 0;
+    }
+    input[type="number"].input--box { -moz-appearance:textfield; }
 
-.delete-btn {
-  padding: 4px 8px;
-  border: none;
-  background: #f66;
-  color: #fff;
-  border-radius: var(--radius);
-  cursor: pointer;
-}
+    .plus-btn {
+      width: 36px; height: 36px;
+      display:flex; align-items:center; justify-content:center;
+      border:1px solid #ccc; border-radius:12px; cursor:pointer;
+      font-size:20px; line-height:1; user-select:none; background:#fff;
+    }
 
-.details, .total { margin-top: 12px; padding: 8px; border: 1px solid #ccc; border-radius: var(--radius); }
-.details { font-size: 14px; text-align: left; }
-.total { font-weight: bold; font-size: 16px; text-align: right; }
-
-@media (max-width: 480px) {
-  .amount-wrap .amount { width: 72px; }
-  .plus-btn { width: 32px; height: 32px; font-size: 17px; }
-  input[type="number"], input[type="text"] { font-size: 15px; }
-}
-</style>
+    /* 小さい画面の最適化 */
+    @media (max-width: 480px){
+      .input--box { min-width: 116px; font-size: 17px; }
+      .plus-btn { width: 34px; height: 34px; font-size: 19px; }
+    }
+  </style>
 </head>
 <body>
+  <h1>切手カウンター（複合額面・空白スタート）</h1>
+  <div class="hint">
+    額面は「20」だけでなく <b>20+100</b> のように＋で合算できます。<br>
+    枚数（シート内）が空白/0 の時は <b>額面×シート数or枚数</b> で計算。下に明細テキストを自動表示します。
+  </div>
 
-<h1>切手カウンター（複合額面・空白スタート）</h1>
-<div class="hint">
-額面は「20」だけでなく <b>20+100</b> のように＋で合算できます。<br>
-枚数（シート内）が空白/0 の時は 額面×シート数or枚数 で計算。下に明細を自動表示します。
-</div>
+  <div class="toolbar">
+    <button id="addRow">行を追加</button>
+    <button id="clearAll">全てクリア</button>
+    <button id="shareBtn" class="primary">結果を共有/コピー</button>
+  </div>
 
-<div class="toolbar">
-  <button id="addRow">行を追加</button>
-  <button id="clearAll">全てクリア</button>
-  <button id="shareBtn" class="primary">結果を共有/コピー</button>
-</div>
+  <div class="sectionTitle">よく使う額面（編集可）</div>
+  <div class="chipswrap">
+    <div class="chips" id="chips"></div>
+    <button id="editPresets">編集</button>
+  </div>
 
-<div class="sectionTitle">よく使う額面</div>
-<div class="chips" id="chips">
-  <button>1</button><button>2</button><button>5</button><button>10</button>
-  <button>20</button><button>30</button><button>50</button>
-</div>
+  <table>
+    <thead>
+      <tr>
+        <th>額面（円, 例: 20 または 20+100）</th>
+        <th>枚数（シート内）</th>
+        <th>シート数 or 枚数</th>
+        <th class="right">小計</th>
+        <th>行</th>
+      </tr>
+    </thead>
+    <tbody id="rows"></tbody>
+  </table>
 
-<table id="stampTable">
-  <thead>
-    <tr>
-      <th>額面（円, 例: 20 または 20+100）</th>
-      <th>枚数（シート内）</th>
-      <th>小計</th>
-      <th>行</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
+  <div class="summary">
+    <h2>明細</h2>
+    <div id="detail">(ここに計算式が表示されます)</div>
+  </div>
 
-<div class="details" id="details">(ここに計算式が表示されます)</div>
-<div class="total" id="total">合計 0 円</div>
+  <div class="totalbar">
+    合計 <span id="grand">0</span> 円
+  </div>
 
-<script>
-const tableBody = document.querySelector('#stampTable tbody');
-const detailsDiv = document.getElementById('details');
-const totalDiv = document.getElementById('total');
+  <script>
+    // ---- 永続化キー
+    const LS_PRESETS = 'stamp_presets_v1';
+    const LS_ROWS    = 'stamp_rows_v1';
 
-function addRow(amountVal = '', qtyVal = '') {
-  const tr = document.createElement('tr');
-  tr.innerHTML = `
-    <td>
-      <div class="amount-wrap">
-        <input type="text" class="amount" value="${amountVal}" placeholder="20 または 20+100">
-        <button class="plus-btn">+</button>
-      </div>
-    </td>
-    <td><input type="number" class="qty" value="${qtyVal}" min="0"></td>
-    <td class="subtotal">0 円</td>
-    <td><button class="delete-btn">削除</button></td>
-  `;
-  tableBody.appendChild(tr);
-  updateAll();
-
-  tr.querySelector('.delete-btn').addEventListener('click', () => { tr.remove(); updateAll(); });
-  tr.querySelector('.plus-btn').addEventListener('click', () => {
-    const amtInput = tr.querySelector('.amount');
-    if (amtInput.value && !amtInput.value.endsWith('+')) {
-      amtInput.value += '+';
+    // ---- プリセット（既定値）
+    function getPresets(){
+      const saved = localStorage.getItem(LS_PRESETS);
+      if(saved){ try { const a = JSON.parse(saved); if(Array.isArray(a)) return a; } catch{} }
+      return [1,2,5,10,20,30,50];
     }
-    amtInput.focus();
-  });
-  tr.querySelectorAll('input').forEach(inp => inp.addEventListener('input', updateAll));
-}
-
-function parseAmount(str) {
-  return str.split('+').map(s => parseFloat(s) || 0).reduce((a,b) => a+b, 0);
-}
-
-function updateAll() {
-  let total = 0;
-  let details = [];
-  tableBody.querySelectorAll('tr').forEach(tr => {
-    const amountStr = tr.querySelector('.amount').value.trim();
-    const qty = parseFloat(tr.querySelector('.qty').value) || 0;
-    const amount = parseAmount(amountStr);
-    const subtotal = amount * qty;
-    tr.querySelector('.subtotal').textContent = subtotal.toLocaleString() + ' 円';
-    if (amountStr) {
-      const display = amountStr.includes('+') ? `(${amountStr})×${qty}` : `${amountStr}×${qty}`;
-      details.push(`${display} = ${subtotal.toLocaleString()}`);
+    function setPresets(arr){
+      localStorage.setItem(LS_PRESETS, JSON.stringify(arr));
     }
-    total += subtotal;
-  });
-  detailsDiv.textContent = details.length ? details.join('　') : '(ここに計算式が表示されます)';
-  totalDiv.textContent = '合計 ' + total.toLocaleString() + ' 円';
-}
 
-document.getElementById('addRow').addEventListener('click', () => addRow());
-document.getElementById('clearAll').addEventListener('click', () => { tableBody.innerHTML = ''; updateAll(); });
-document.getElementById('chips').addEventListener('click', e => {
-  if (e.target.tagName === 'BUTTON') {
-    addRow(e.target.textContent);
-  }
-});
-document.getElementById('shareBtn').addEventListener('click', () => {
-  const text = totalDiv.textContent + '\n' + detailsDiv.textContent;
-  navigator.clipboard.writeText(text).then(() => alert('コピーしました'));
-});
+    // ---- 行の永続化
+    function saveRows(){
+      const data = [];
+      document.querySelectorAll('#rows tr').forEach(tr=>{
+        data.push({
+          amount: tr.querySelector('.amount').value,
+          per: tr.querySelector('.per').value,
+          sheets: tr.querySelector('.sheets').value
+        });
+      });
+      localStorage.setItem(LS_ROWS, JSON.stringify(data));
+    }
+    function loadRows(){
+      const t = localStorage.getItem(LS_ROWS);
+      if(!t) return [];
+      try{ const a = JSON.parse(t); return Array.isArray(a)?a:[]; }catch{ return []; }
+    }
 
-addRow();
-</script>
+    // ---- UI: プリセットの描画
+    function renderChips(){
+      const wrap = document.getElementById('chips');
+      wrap.innerHTML = '';
+      getPresets().forEach(v=>{
+        const b = document.createElement('button');
+        b.className = 'chip';
+        b.textContent = `${v}円`;
+        b.addEventListener('click', ()=> onPresetClick(v));
+        wrap.appendChild(b);
+      });
+    }
 
-</body>
-</html>
+    // ---- プリセットクリック: 新しい行を追加し額面セット
+    function onPresetClick(v){
+      const tr = addRow(String(v), '', '');
+      tr.querySelector('.amount').focus();
+      recalc();
+    }
+
+    // ---- 行追加（UIはここで完全生成）
+    function addRow(amountText='', perSheetText='', sheetOrCount=''){
+      const tbody = document.getElementById('rows');
+      const tr = document.createElement('tr');
+
+      // 額面 + ＋ボタン
+      const tdA = document.createElement('td');
+      const wrap = document.createElement('div');
+      wrap.className = 'amount-wrap';
+
+      const amount = document.createElement('input');
+      amount.type = 'text';           // iOS で + を入れやすく
+      amount.inputMode = 'numeric';
+      amount.placeholder = '20 または 20+100';
+      amount.className = 'input--box amount';
+      amount.value = amountText || '';
+
+      const plus = document.createElement('button');
+      plus.type = 'button';
+      plus.className = 'plus-btn';
+      plus.textContent = '+';
+      plus.addEventListener('click', ()=>{
+        if(!amount.value.endsWith('+')) amount.value = (amount.value || '') + '+';
+        recalc();
+      });
+
+      wrap.appendChild(amount);
+      wrap.appendChild(plus);
+      tdA.appendChild(wrap);
+
+      // 枚数（シート内）
+      const tdP = document.createElement('td');
+      const per = document.createElement('input');
+      per.type = 'number'; per.min = '0';
+      per.placeholder = '（空欄なら…）';
+      per.className = 'input--box per';
+      per.value = perSheetText || '';
+      tdP.appendChild(per);
+
+      // シート数 or 枚数
+      const tdS = document.createElement('td');
+      const sheets = document.createElement('input');
+      sheets.type = 'number'; sheets.min = '0';
+      sheets.className = 'input--box sheets';
+      sheets.value = sheetOrCount || '';
+      tdS.appendChild(sheets);
+
+      // 小計
+      const tdSub = document.createElement('td');
+      tdSub.className = 'right subtotal';
+      tdSub.textContent = '0 円';
+
+      // 削除
+      const tdOps = document.createElement('td');
+      const rm = document.createElement('button');
+      rm.type='button'; rm.textContent='削除';
+      rm.addEventListener('click', ()=>{ tr.remove(); recalc(); });
+      tdOps.appendChild(rm);
+
+      tr.appendChild(tdA);
+      tr.appendChild(tdP);
+      tr.appendChild(tdS);
+      tr.appendChild(tdSub);
+      tr.appendChild(tdOps);
+
+      tbody.appendChild(tr);
+
+      [amount, per, sheets].forEach(el=> el.addEventListener('input', recalc));
+
+      return tr;
+    }
+
+    // ---- 文字列額面を数値へ（"5+25" → 30）
+    function evalAmount(expr){
+      if(!expr) return 0;
+      // 不要な+除去
+      expr = String(expr).replace(/^\+|\+$/g,'').replace(/\+\+/g,'+');
+      if(!expr) return 0;
+      const parts = expr.split('+').map(s=>Number(s.trim())).filter(n=>!Number.isNaN(n));
+      return parts.reduce((a,b)=>a+b,0);
+    }
+
+    // ---- 明細のフォーマット
+    function formatDetail(amountExpr, perSheet, sheetOrCount, lineTotal){
+      const amt = amountExpr || '0';
+      // シート内1ならカッコ無し
+      const base = perSheet && Number(perSheet) !== 1
+        ? `(${amt})×${perSheet}`
+        : (perSheet && Number(perSheet) === 1 ? `${amt}` : `${amt}`);
+
+      const expr = sheetOrCount ? `${base}×${sheetOrCount}` : base;
+      return `${expr} = ${lineTotal.toLocaleString()}`;
+    }
+
+    // ---- 再計算
+    function recalc(){
+      let sum = 0;
+      const lines = [];
+
+      document.querySelectorAll('#rows tr').forEach(tr=>{
+        const amountExpr = tr.querySelector('.amount').value.trim();
+        const per = Number(tr.querySelector('.per').value || 0);
+        const sheets = Number(tr.querySelector('.sheets').value || 0);
+
+        const face = evalAmount(amountExpr);                // 額面合計
+        const perApplied = per > 0 ? per : 0;               // シート内（0/空は無視）
+        let units = face;
+
+        // 計算：額面 × シート内 ×（シート数or枚数）
+        if(perApplied > 0) units = face * perApplied;
+
+        const times = sheets > 0 ? sheets : (perApplied > 0 ? 1 : 0); // もう一段掛け算
+        const lineTotal = times ? units * times : units;
+
+        // 小計表示
+        tr.querySelector('.subtotal').textContent = `${lineTotal.toLocaleString()} 円`;
+
+        // 明細行
+        if(face > 0){
+          lines.push( formatDetail(amountExpr, perApplied, sheets>0 ? sheets : null, lineTotal) );
+        }
+
+        sum += lineTotal;
+      });
+
+      document.getElementById('detail').textContent = lines.length ? lines.join('　') : '（ここに計算式が表示されます）';
+      document.getElementById('grand').textContent = sum.toLocaleString();
+
+      saveRows();
+    }
+
+    // ---- 共有/コピー
+    async function shareOrC
