@@ -2,261 +2,192 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>切手カウンター（複合額面・空白スタート）</title>
-
-<!-- PWAを使っている場合はそのまま -->
-<link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#105FCA">
-<meta name="apple-mobile-web-app-capable" content="yes">
-
 <style>
-  :root { --radius: 12px; }
-  * { box-sizing: border-box; }
+:root { --radius: 10px; }
+* { box-sizing: border-box; }
 
-  body {
-    font-family: -apple-system, system-ui, "Segoe UI", Roboto,
-      "Hiragino Kaku Gothic ProN","Noto Sans JP", Arial, sans-serif;
-    margin: 14px;
-  }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+               "Hiragino Kaku Gothic ProN", "Noto Sans JP", Arial, sans-serif;
+  margin: 14px;
+}
 
-  h1 { font-size: 20px; margin: 0 0 8px; }
-  .hint { color:#666; font-size:12px; margin: 6px 0 12px; }
+h1 { font-size: 20px; margin: 0 0 8px; }
+.hint { color:#666; font-size: 13px; margin-bottom: 12px; }
 
-  .toolbar { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom: 10px; }
-  button { padding:10px 12px; border-radius: var(--radius); border:1px solid #ccc; background:#fafafa; cursor:pointer; }
-  button.primary { background:#111; color:#fff; border-color:#111; }
+.toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.toolbar button {
+  padding: 8px 14px;
+  border-radius: var(--radius);
+  border: 1px solid #ccc;
+  background: #fff;
+  font-size: 14px;
+  cursor: pointer;
+}
+.toolbar button.primary {
+  background: #000; color: #fff; border: none;
+}
 
-  .sectionTitle { font-size:13px; color:#666; margin: 10px 0 6px; }
-  .chipswrap { display:flex; gap:8px; overflow-x:auto; padding:4px 0; }
-  .chip { border:1px solid #ccc; background:#fff; padding:7px 10px; border-radius:9999px; white-space:nowrap; cursor:pointer; user-select:none; }
-  .chip:active { background:#eee; }
+.sectionTitle { margin: 12px 0 6px; font-weight: bold; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.chips button {
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 16px;
+  background: #fff;
+  font-size: 14px;
+  cursor: pointer;
+}
 
-  table { width:100%; border-collapse:collapse; }
-  th, td { padding:8px; border-bottom:1px solid #eee; vertical-align: middle; }
-  th { text-align:left; font-weight:700; }
-  td.right { text-align:right; font-variant-numeric: tabular-nums; }
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: center; padding: 4px; }
+td { vertical-align: middle; }
 
-  /* 入力共通 */
-  input[type="number"], input[type="text"] {
-    width: 100%;
-    padding: 10px 11px;
-    border: 1px solid #ccc;
-    border-radius: var(--radius);
-    font-size: 17px;
-    background: #fff;
-  }
+.amount-wrap { display:inline-flex; align-items:center; gap:4px; }
+.amount-wrap .amount { width: 80px; flex: 0 0 auto; }
 
-  /* 額面入力＋プラスボタンの横並び */
-  .amount-wrap { display:inline-flex; align-items:center; gap:6px; width:100%; }
-  .amount-wrap .amount { width: 120px; flex: 0 0 auto; } /* 他の入力と同等の横幅に固定 */
+.plus-btn {
+  width: 34px; height: 34px;
+  border-radius: 8px;
+  font-size: 18px;
+  display:inline-flex; align-items:center; justify-content:center;
+  border:1px solid #ccc; background:#fff; cursor:pointer;
+}
 
-  /* ＋ボタン（iPhoneでも押しやすいサイズ） */
-  .plus-btn {
-    width: 44px; height: 44px;
-    border-radius: 12px;
-    font-size: 22px; line-height: 1;
-    display:inline-flex; align-items:center; justify-content:center;
-    border:1px solid #ccc; background:#fff; cursor:pointer;
-  }
+input[type="number"], input[type="text"] {
+  padding: 6px 8px;
+  font-size: 15px;
+  border-radius: var(--radius);
+  border: 1px solid #ccc;
+  text-align: center;
+}
 
-  .summary { margin-top:14px; padding:12px; border:1px solid #eee; border-radius: var(--radius); background:#fafafa; min-height: 90px; }
-  .totalbar { position:sticky; bottom:0; background:rgba(255,255,255,.96); backdrop-filter: blur(6px); padding:12px; border:1px solid #eee; border-radius: var(--radius); margin-top: 12px; }
-  .totalbar .right { text-align:right; font-size:18px; }
+.delete-btn {
+  padding: 4px 8px;
+  border: none;
+  background: #f66;
+  color: #fff;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
 
-  @media (max-width: 480px){
-    input[type="number"], input[type="text"]{ font-size:17px; }
-    .plus-btn{ width:40px; height:40px; font-size:22px; }
-  }
+.details, .total { margin-top: 12px; padding: 8px; border: 1px solid #ccc; border-radius: var(--radius); }
+.details { font-size: 14px; text-align: left; }
+.total { font-weight: bold; font-size: 16px; text-align: right; }
+
+@media (max-width: 480px) {
+  .amount-wrap .amount { width: 72px; }
+  .plus-btn { width: 32px; height: 32px; font-size: 17px; }
+  input[type="number"], input[type="text"] { font-size: 15px; }
+}
 </style>
 </head>
 <body>
-  <h1>切手カウンター（複合額面・空白スタート）</h1>
-  <div class="hint">
-    額面は「20」だけでなく <b>20+100</b> のように＋で合算できます。<br>
-    枚数（シート内）が空白/0 の時は <b>額面×シート数or枚数</b> で計算。下に明細を自動表示します。
-  </div>
 
-  <div class="toolbar">
-    <button id="addRow">行を追加</button>
-    <button id="clearAll">全てクリア</button>
-    <button id="shareBtn" class="primary">結果を共有/コピー</button>
-  </div>
+<h1>切手カウンター（複合額面・空白スタート）</h1>
+<div class="hint">
+額面は「20」だけでなく <b>20+100</b> のように＋で合算できます。<br>
+枚数（シート内）が空白/0 の時は 額面×シート数or枚数 で計算。下に明細を自動表示します。
+</div>
 
-  <div class="sectionTitle">よく使う額面</div>
-  <div class="chipswrap" id="chips"></div>
+<div class="toolbar">
+  <button id="addRow">行を追加</button>
+  <button id="clearAll">全てクリア</button>
+  <button id="shareBtn" class="primary">結果を共有/コピー</button>
+</div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>額面（円, 例: 20 または 20+100）</th>
-        <th>枚数（シート内）</th>
-        <th>シート数 or 枚数</th>
-        <th class="right">小計</th>
-        <th>行</th>
-      </tr>
-    </thead>
-    <tbody id="tbody"></tbody>
-  </table>
+<div class="sectionTitle">よく使う額面</div>
+<div class="chips" id="chips">
+  <button>1</button><button>2</button><button>5</button><button>10</button>
+  <button>20</button><button>30</button><button>50</button>
+</div>
 
-  <div class="summary">
-    <div class="sectionTitle">明細</div>
-    <div id="detail">（ここに計算式が表示されます）</div>
-  </div>
-  <div class="totalbar">
-    <div class="right">合計 <span id="grand">0</span> 円</div>
-  </div>
+<table id="stampTable">
+  <thead>
+    <tr>
+      <th>額面（円, 例: 20 または 20+100）</th>
+      <th>枚数（シート内）</th>
+      <th>小計</th>
+      <th>行</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<div class="details" id="details">(ここに計算式が表示されます)</div>
+<div class="total" id="total">合計 0 円</div>
 
 <script>
-  /* ========== ユーティリティ ========== */
-  const tbody = document.getElementById('tbody');
-  const detail = document.getElementById('detail');
-  const grand  = document.getElementById('grand');
+const tableBody = document.querySelector('#stampTable tbody');
+const detailsDiv = document.getElementById('details');
+const totalDiv = document.getElementById('total');
 
-  const yen = n => (isFinite(n)? n:0).toLocaleString('ja-JP');
+function addRow(amountVal = '', qtyVal = '') {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td>
+      <div class="amount-wrap">
+        <input type="text" class="amount" value="${amountVal}" placeholder="20 または 20+100">
+        <button class="plus-btn">+</button>
+      </div>
+    </td>
+    <td><input type="number" class="qty" value="${qtyVal}" min="0"></td>
+    <td class="subtotal">0 円</td>
+    <td><button class="delete-btn">削除</button></td>
+  `;
+  tableBody.appendChild(tr);
+  updateAll();
 
-  // "20+100+50" を合算して数値化
-  function sumAmount(text){
-    return String(text||'')
-      .split('+')
-      .map(s => Number(String(s).trim()))
-      .filter(n => Number.isFinite(n))
-      .reduce((a,b)=>a+b,0);
-  }
-
-  // 表示用：+を含む額面は (20+100) のように括弧でくくる
-  function displayAmountExpr(raw){
-    const tokens = String(raw||'')
-      .split('+')
-      .map(s => s.trim())
-      .filter(s => s !== '');
-    if (tokens.length >= 2) return `(${tokens.join('+')})`; // (20+100)
-    return tokens[0] ?? '';
-  }
-
-  /* ========== 行の生成 ========== */
-  function addRow(amountText='', perSheet='', sheets=''){
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>
-        <div class="amount-wrap">
-          <input class="amount" type="text" inputmode="numeric" placeholder="20 または 20+100" value="${amountText}">
-          <button class="plus-btn" type="button" title="+">＋</button>
-        </div>
-      </td>
-      <td><input class="per"   type="number" min="0" placeholder="（空欄なら…）" value="${perSheet}"></td>
-      <td><input class="sheet" type="number" min="0" placeholder="シート数 or 枚数" value="${sheets}"></td>
-      <td class="right"><span class="sub">0</span> 円</td>
-      <td class="right"><button class="del">削除</button></td>
-    `;
-    tbody.appendChild(tr);
-    bindRow(tr);
-    recalc();
-  }
-
-  function bindRow(tr){
-    const amt   = tr.querySelector('.amount');
-    const per   = tr.querySelector('.per');
-    const sheet = tr.querySelector('.sheet');
-    const del   = tr.querySelector('.del');
-    const plus  = tr.querySelector('.plus-btn');
-
-    [amt, per, sheet].forEach(el => el.addEventListener('input', recalc));
-    del.addEventListener('click', ()=>{ tr.remove(); recalc(); });
-
-    // ＋ボタン：額面の“後ろ”に + を追記（常に末尾）
-    plus.addEventListener('click', ()=>{
-      const v = amt.value.trim();
-      amt.value = v === '' ? '+' : (v.endsWith('+') ? v : v + '+');
-      // キャレットを末尾へ
-      amt.focus();
-      const len = amt.value.length;
-      amt.setSelectionRange(len, len);
-      recalc();
-    });
-  }
-
-  /* ========== 計算 ========== */
-  function calcRow(tr){
-    const amtRaw = tr.querySelector('.amount').value;
-    const per    = Number(tr.querySelector('.per').value||0);
-    const sheet  = Number(tr.querySelector('.sheet').value||0);
-
-    const A = sumAmount(amtRaw);                  // 数値合算
-    const expr = displayAmountExpr(amtRaw) || (A ? String(A) : ''); // 表示用
-
-    let subtotal = 0;
-    let lineText = '';
-
-    if (!A || (!per && !sheet)) {
-      subtotal = 0;
-      lineText = '';
-    } else if (!per) {
-      // 枚数（シート内）が空/0 → 額面×シート数or枚数
-      subtotal = A * sheet;
-      if (sheet > 0) lineText = `${expr||A}×${sheet} = ${yen(subtotal)}`;
-    } else {
-      // 枚数あり → (額面×枚数)×シート数（※シート=1は括弧省略）
-      const inner = A * per;
-      if (sheet > 0) {
-        subtotal = inner * sheet;
-        const left = `${expr||A}×${per}`;
-        lineText = (sheet === 1)
-          ? `${left} = ${yen(subtotal)}`
-          : `(${left}) ×${sheet} = ${yen(subtotal)}`;
-      } else {
-        subtotal = inner;
-        lineText = `${expr||A}×${per} = ${yen(subtotal)}`;
-      }
+  tr.querySelector('.delete-btn').addEventListener('click', () => { tr.remove(); updateAll(); });
+  tr.querySelector('.plus-btn').addEventListener('click', () => {
+    const amtInput = tr.querySelector('.amount');
+    if (amtInput.value && !amtInput.value.endsWith('+')) {
+      amtInput.value += '+';
     }
-
-    tr.querySelector('.sub').textContent = yen(subtotal);
-    return { subtotal, lineText };
-  }
-
-  function recalc(){
-    let total = 0;
-    const lines = [];
-    [...tbody.querySelectorAll('tr')].forEach(tr=>{
-      const r = calcRow(tr);
-      if (r.lineText) lines.push(r.lineText);
-      total += r.subtotal;
-    });
-    detail.textContent = lines.length ? lines.join('\n') : '（ここに計算式が表示されます）';
-    grand.textContent  = yen(total);
-  }
-
-  /* ========== よく使う額面（新しい行に入れる） ========== */
-  const chipValues = [1,2,5,10,20,30,50,63,70,84,94,100,120,140,160,180,200,210,260,320,500,1000];
-  const chips = document.getElementById('chips');
-  chips.innerHTML = chipValues.map(v=>`<div class="chip" data-amt="${v}">${v}円</div>`).join('');
-  chips.addEventListener('click', (e)=>{
-    const c = e.target.closest('.chip'); if(!c) return;
-    addRow(String(c.dataset.amt||''), '', ''); // 必ず新しい行に追加
+    amtInput.focus();
   });
+  tr.querySelectorAll('input').forEach(inp => inp.addEventListener('input', updateAll));
+}
 
-  /* ========== ツールバー ========== */
-  document.getElementById('addRow').addEventListener('click', ()=> addRow('','',''));
-  document.getElementById('clearAll').addEventListener('click', ()=>{
-    tbody.innerHTML = '';
-    addRow('','','');
-    recalc();
+function parseAmount(str) {
+  return str.split('+').map(s => parseFloat(s) || 0).reduce((a,b) => a+b, 0);
+}
+
+function updateAll() {
+  let total = 0;
+  let details = [];
+  tableBody.querySelectorAll('tr').forEach(tr => {
+    const amountStr = tr.querySelector('.amount').value.trim();
+    const qty = parseFloat(tr.querySelector('.qty').value) || 0;
+    const amount = parseAmount(amountStr);
+    const subtotal = amount * qty;
+    tr.querySelector('.subtotal').textContent = subtotal.toLocaleString() + ' 円';
+    if (amountStr) {
+      const display = amountStr.includes('+') ? `(${amountStr})×${qty}` : `${amountStr}×${qty}`;
+      details.push(`${display} = ${subtotal.toLocaleString()}`);
+    }
+    total += subtotal;
   });
-  document.getElementById('shareBtn').addEventListener('click', async ()=>{
-    const text = `明細\n${detail.textContent}\n\n合計 ${grand.textContent} 円`;
-    try{
-      if(navigator.share){ await navigator.share({ text }); }
-      else { await navigator.clipboard.writeText(text); alert('コピーしました'); }
-    }catch(_){}
-  });
+  detailsDiv.textContent = details.length ? details.join('　') : '(ここに計算式が表示されます)';
+  totalDiv.textContent = '合計 ' + total.toLocaleString() + ' 円';
+}
 
-  /* 初期行 */
-  addRow('','','');
-
-  /* PWA: Service Worker（置いてある時だけ） */
-  if('serviceWorker' in navigator){
-    navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
+document.getElementById('addRow').addEventListener('click', () => addRow());
+document.getElementById('clearAll').addEventListener('click', () => { tableBody.innerHTML = ''; updateAll(); });
+document.getElementById('chips').addEventListener('click', e => {
+  if (e.target.tagName === 'BUTTON') {
+    addRow(e.target.textContent);
   }
+});
+document.getElementById('shareBtn').addEventListener('click', () => {
+  const text = totalDiv.textContent + '\n' + detailsDiv.textContent;
+  navigator.clipboard.writeText(text).then(() => alert('コピーしました'));
+});
+
+addRow();
 </script>
+
 </body>
 </html>
