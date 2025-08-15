@@ -37,37 +37,37 @@
 
   /* 入力共通 */
   input[type="number"], input[type="text"] {
-    padding: 10px 11px;
+    padding: 8px 9px;
     border: 1px solid #ccc;
     border-radius: var(--radius);
     font-size: 17px;
     background: #fff;
-    height: 44px;
+    height: 38px;
   }
 
   /* 額面入力＋プラスボタンの横並び */
-  .amount-wrap { display:inline-flex; align-items:center; gap:6px; width:100%; }
-  .amount-wrap .amount { width: 110px; flex: 0 0 auto; }
+  .amount-wrap { display:inline-flex; align-items:center; gap:4px; width:100%; }
+  .amount-wrap .amount { width: 55px; flex: 0 0 auto; }
 
-  /* ＋ボタン */
+  /* ＋ボタン 小さめ */
   .plus-btn {
-    width: 34px; height: 34px;
-    border-radius: 12px;
-    font-size: 19px; line-height: 1;
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    font-size: 17px; line-height: 1;
     display:inline-flex; align-items:center; justify-content:center;
     border:1px solid #ccc; background:#fff; cursor:pointer;
   }
 
-  /* 枚数・シート数の幅統一 */
+  /* 枚数・シート数の幅を額面と同じに */
   td .per, td .sheet {
-    width: 110px;
-    min-width: 110px;
+    width: 55px;
+    min-width: 55px;
   }
 
   /* ヘッダー列幅調整 */
   thead th:nth-child(1) { width: auto; }
-  thead th:nth-child(2) { width: 120px; }
-  thead th:nth-child(3) { width: 120px; white-space: nowrap; }
+  thead th:nth-child(2) { width: 70px; }
+  thead th:nth-child(3) { width: 70px; white-space: nowrap; }
   thead th:nth-child(4) { width: 90px; }
   thead th:nth-child(5) { width: 64px; }
 
