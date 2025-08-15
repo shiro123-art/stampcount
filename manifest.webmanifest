@@ -1,0 +1,10 @@
+{
+  "name": "切手カウンター（オフライン）",
+  "short_name": "切手カウンター",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color":"#105FCA",
+  "lang": "ja"
+}
