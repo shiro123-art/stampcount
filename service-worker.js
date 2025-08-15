@@ -1,4 +1,4 @@
-const CACHE_NAME = 'stamp-counter-v51';
+const CACHE_NAME = 'stamp-counter-v1';
 const URLS_TO_CACHE = ['./', './index.html', './manifest.webmanifest'];
 
 self.addEventListener('install', (e) => {
