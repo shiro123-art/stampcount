@@ -1,7 +1,9 @@
 
 <!DOCTYPE html>
 <html lang="ja">
-<head>
+<head><link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#105FCA">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>切手カウンター（複合額面・空白＋明細表示）</title>
@@ -284,6 +286,17 @@
   initChips();
   initRows();
 })();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js')
+    .then(function(reg) {
+      console.log('Service Worker 登録成功:', reg);
+    })
+    .catch(function(err) {
+      console.log('Service Worker 登録失敗:', err);
+    });
+}
 </script>
 </body>
 </html>
